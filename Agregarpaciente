@@ -1,0 +1,94 @@
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, Button, FlatList, Text, Alert } from 'react-native';
+
+const API_URL = 'http://tu_servidor/api/pacientes';
+
+const MantenimientoPacientesScreen = () => {
+  const [pacientes, setPacientes] = useState([]);
+  const [id, setId] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [edad, setEdad] = useState('');
+  const [direccion, setDireccion] = useState('');
+  const [telefono, setTelefono] = useState('');
+
+  useEffect(() => {
+    fetchPacientes();
+  }, []);
+
+  const fetchPacientes = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setPacientes(data);
+    } catch (error) {
+      console.error('Error al obtener la lista de pacientes:', error);
+    }
+  };
+
+  const handleAgregarPaciente = async () => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombre, edad, direccion, telefono }),
+      });
+
+      if (response.ok) {
+        fetchPacientes();
+        Alert.alert('Paciente agregado exitosamente.');
+      } else {
+        Alert.alert('Error al agregar el paciente.');
+      }
+    } catch (error) {
+      console.error('Error al agregar el paciente:', error);
+      Alert.alert('Error al agregar el paciente.');
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View>
+      <Text>ID: {item.id}</Text>
+      <Text>Nombre: {item.nombre}</Text>
+      <Text>Edad: {item.edad}</Text>
+      <Text>Dirección: {item.direccion}</Text>
+      <Text>Teléfono: {item.telefono}</Text>
+    </View>
+  );
+
+  return (
+    <View>
+      <TextInput
+        placeholder="Nombre"
+        onChangeText={(text) => setNombre(text)}
+        value={nombre}
+      />
+      <TextInput
+        placeholder="Edad"
+        onChangeText={(text) => setEdad(text)}
+        value={edad}
+        keyboardType="numeric"
+      />
+      <TextInput
+        placeholder="Dirección"
+        onChangeText={(text) => setDireccion(text)}
+        value={direccion}
+      />
+      <TextInput
+        placeholder="Teléfono"
+        onChangeText={(text) => setTelefono(text)}
+        value={telefono}
+        keyboardType="phone-pad"
+      />
+      <Button title="Agregar Paciente" onPress={handleAgregarPaciente} />
+      <FlatList
+        data={pacientes}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+      />
+    </View>
+  );
+};
+
+export default MantenimientoPacientesScreen;
