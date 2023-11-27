@@ -1,0 +1,85 @@
+<?php
+
+// Conexión a la base de datos (suponiendo MySQL)
+$servername = "localhost";
+$username = "tu_usuario";
+$password = "tu_contraseña";
+$dbname = "nombre_base_de_datos";
+
+// Crear conexión
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Verificar la conexión
+if ($conn->connect_error) {
+    die("Conexión fallida: " . $conn->connect_error);
+}
+
+// Endpoint para obtener todos los pacientes
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $sql = "SELECT * FROM pacientes";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        $rows = array();
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = $row;
+        }
+        echo json_encode($rows);
+    } else {
+        echo "No se encontraron pacientes.";
+    }
+}
+
+// Endpoint para agregar un nuevo paciente
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $nombre = $data['nombre'];
+    $edad = $data['edad'];
+    $enfermedad = $data['enfermedad'];
+
+    $sql = "INSERT INTO pacientes (nombre, edad, enfermedad) VALUES ('$nombre', '$edad', '$enfermedad')";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Nuevo paciente agregado exitosamente.";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+// Endpoint para actualizar un paciente por su ID
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $id = $data['id'];
+    $nombre = $data['nombre'];
+    $edad = $data['edad'];
+    $enfermedad = $data['enfermedad'];
+
+    $sql = "UPDATE pacientes SET nombre='$nombre', edad='$edad', enfermedad='$enfermedad' WHERE id=$id";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Paciente actualizado exitosamente.";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+// Endpoint para eliminar un paciente por su ID
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    $id = $data['id'];
+
+    $sql = "DELETE FROM pacientes WHERE id=$id";
+
+    if ($conn->query($sql) === TRUE) {
+        echo "Paciente eliminado exitosamente.";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
+
+$conn->close();
+
+?>
